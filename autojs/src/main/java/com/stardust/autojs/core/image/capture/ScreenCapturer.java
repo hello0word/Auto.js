@@ -14,8 +14,8 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import android.util.Log;
 import android.view.OrientationEventListener;
 
@@ -32,7 +32,10 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCapturer {
 
-    public static final int ORIENTATION_AUTO = -1;
+    public static final int ORIENTATION_AUTO = Configuration.ORIENTATION_UNDEFINED;
+    public static final int ORIENTATION_LANDSCAPE = Configuration.ORIENTATION_LANDSCAPE ;
+    public static final int ORIENTATION_PORTRAIT = Configuration.ORIENTATION_PORTRAIT ;
+
 
     private static final String LOG_TAG = "ScreenCapturer";
     private final MediaProjectionManager mProjectionManager;
@@ -47,7 +50,7 @@ public class ScreenCapturer {
     private Handler mHandler;
     private Intent mData;
     private Context mContext;
-    private int mOrientation = Configuration.ORIENTATION_UNDEFINED;
+    private int mOrientation = -1;
     private int mDetectedOrientation;
     private OrientationEventListener mOrientationEventListener;
 
@@ -70,7 +73,12 @@ public class ScreenCapturer {
                 int orientation = mContext.getResources().getConfiguration().orientation;
                 if (mOrientation == ORIENTATION_AUTO && mDetectedOrientation != orientation) {
                     mDetectedOrientation = orientation;
-                    refreshVirtualDisplay(orientation);
+                    try {
+                        refreshVirtualDisplay(orientation);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        mException = e;
+                    }
                 }
             }
 
@@ -148,8 +156,8 @@ public class ScreenCapturer {
 
     @Nullable
     public Image capture() {
-        if (mException != null) {
-            Exception e = mException;
+        Exception e = mException;
+        if (e != null) {
             mException = null;
             throw new ScriptException(e);
         }
